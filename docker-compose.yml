@@ -1,0 +1,27 @@
+version: '3'
+
+services:
+  master:
+    image: locustio/locust:1.2.3
+    ports:
+     - "8089:8089"
+    volumes:
+      - ./:/mnt/locust
+      - ./locust:/usr/local/lib/python3.8/site-packages/locust
+    command: -f /mnt/locust/locustfile.py --master -H http://target --loglevel DEBUG
+    # command: -f /mnt/locust/locustfile.py --master -H http://target --step-load
+
+  worker:
+    image: locustio/locust:1.2.3
+    volumes:
+      - ./:/mnt/locust
+      # - ./locust:/usr/local/lib/python3.8/site-packages/locust
+    command: -f /mnt/locust/locustfile.py --worker --master-host master --loglevel DEBUG
+
+  target:
+    image: nginx:latest
+    volumes:
+      - ./nginx:/etc/nginx/conf.d/
+
+# curl -X POST 'http://localhost:8089/swarm' --data 'user_count=10&hatch_rate=1'
+# curl -X POST 'http://localhost:8089/swarm' --data 'user_count=30&hatch_rate=1&host=http%3A%2F%2Ftarget&step_user_count=2&step_duration=30'
